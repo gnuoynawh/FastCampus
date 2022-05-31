@@ -55,6 +55,7 @@
                     </navigationItem>
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
+                        <outlet property="editButton" destination="aIC-ZW-7zf" id="MoM-Xc-rQK"/>
                         <outlet property="tableView" destination="wHU-mK-80y" id="a04-aS-9B2"/>
                     </connections>
                 </viewController>
