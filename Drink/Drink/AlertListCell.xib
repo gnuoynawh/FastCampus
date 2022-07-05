@@ -52,10 +52,5 @@
             </connections>
             <point key="canvasLocation" x="139" y="140"/>
         </tableViewCell>
-        <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" id="JRU-gn-OsQ">
-            <rect key="frame" x="0.0" y="0.0" width="51" height="31"/>
-            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-            <point key="canvasLocation" x="302" y="140"/>
-        </switch>
     </objects>
 </document>
