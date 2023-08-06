@@ -6,14 +6,16 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.view.isVisible
+import androidx.room.Room
+import com.gnuoynawh.basicchapter04.model.History
 
 class MainActivity : AppCompatActivity() {
-
-    private var isOperator = false
-    private var hasOperator = false
 
     private val expressionTextView: TextView by lazy {
         findViewById(R.id.expressionTextView)
@@ -23,9 +25,29 @@ class MainActivity : AppCompatActivity() {
         findViewById(R.id.resultTextView)
     }
 
+    private val historyLayout: View by lazy {
+        findViewById(R.id.historyLayout)
+    }
+
+    private val historyLinearLayout : LinearLayout by lazy {
+        findViewById(R.id.historyLinearLayout)
+    }
+
+    lateinit var db: AppDatabase
+
+    private var isOperator = false
+    private var hasOperator = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // 디비 생성
+        db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            "historyDB"
+        ).build()
     }
 
     fun buttonClicked(view: View) {
@@ -69,6 +91,7 @@ class MainActivity : AppCompatActivity() {
         //TODO resultTextView에 실시간 값
         resultTextView.text = calculateExpression()
     }
+
     private fun operatorButtonClicked(operator: String) {
         if (expressionTextView.text.isEmpty()) {
             return
@@ -100,14 +123,6 @@ class MainActivity : AppCompatActivity() {
         isOperator = true
         hasOperator = true
     }
-    fun clearButtonClicked(view: View) {
-        expressionTextView.text = ""
-        resultTextView.text = ""
-        isOperator = false
-        hasOperator = false
-    }
-
-    fun historyButtonClicked(view: View) {}
 
     fun resultButtonClicked(view: View) {
         val expressionTexts = expressionTextView.text.split(" ")
@@ -126,8 +141,13 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val expressionText = expressionTextView.text
+        val expressionText = expressionTextView.text.toString()
         val resultText = calculateExpression()
+
+        // 디비에 넣어주는 부분
+        Thread(Runnable {
+            db.historyDao().insertHistory(History(null, expressionText, resultText))
+        }).start()
 
         resultTextView.text = ""
         expressionTextView.text = resultText
@@ -158,6 +178,41 @@ class MainActivity : AppCompatActivity() {
             "%" -> (exp1 % exp2).toString()
             else -> ""
         }
+    }
+
+    fun clearButtonClicked(view: View) {
+        expressionTextView.text = ""
+        resultTextView.text = ""
+        isOperator = false
+        hasOperator = false
+    }
+
+    fun historyButtonClicked(view: View) {
+        historyLayout.isVisible = true
+        historyLinearLayout.removeAllViews()
+
+        Thread(Runnable {
+            db.historyDao().getAll().forEach {
+                runOnUiThread {
+                    val historyView = LayoutInflater.from(this).inflate(R.layout.history_row, null, false)
+                    historyView.findViewById<TextView>(R.id.expressionTextView).text = it.expression
+                    historyView.findViewById<TextView>(R.id.resultTextView).text = "= ${it.result}"
+
+                    historyLinearLayout.addView(historyView)
+                }
+            }
+        }).start()
+    }
+
+    fun closeHistoryButtonClicked(view: View) {
+        historyLayout.isVisible = false
+    }
+
+    fun historyClearButtonClicked(view: View) {
+        historyLinearLayout.removeAllViews()
+        Thread(Runnable {
+            db.historyDao().deleteAll()
+        }).start()
     }
 }
 
