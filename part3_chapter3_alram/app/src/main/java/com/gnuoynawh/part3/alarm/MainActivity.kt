@@ -1,14 +1,21 @@
 package com.gnuoynawh.part3.alarm
 
+import android.Manifest
 import android.app.AlarmManager
+import android.app.NotificationChannel
 import android.app.PendingIntent
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.TextView
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationManagerCompat
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
@@ -17,11 +24,43 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+                val notiPermission = ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                if (notiPermission != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1000)
+                    return
+                }
+            }
+        }
+
+        init()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        for (i in grantResults.indices) {
+            if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
+                return
+            }
+        }
+
+        init()
+    }
+
+    private fun init() {
+
         initOnOffButton()
         initChangeAlarmButton()
 
         val model = fetchDataFromSharedPreferences()
         renderView(model)
+
     }
 
     private fun initOnOffButton() {
