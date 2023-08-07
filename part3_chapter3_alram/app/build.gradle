@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace 'com.gnuoynawh.part3.alram'
-    compileSdk 33
+    namespace 'com.gnuoynawh.part3.alarm'
+    compileSdk 26
 
     defaultConfig {
-        applicationId "com.gnuoynawh.part3.alram"
-        minSdk 29
-        targetSdk 33
+        applicationId "com.gnuoynawh.part3.alarm"
+        minSdk 26
+        //targetSdk 23
         versionCode 1
         versionName "1.0"
 

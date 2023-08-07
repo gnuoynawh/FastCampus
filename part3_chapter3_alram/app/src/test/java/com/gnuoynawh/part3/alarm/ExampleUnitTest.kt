@@ -1,4 +1,4 @@
-package com.gnuoynawh.part3.alram
+package com.gnuoynawh.part3.alarm
 
 import org.junit.Test
 
