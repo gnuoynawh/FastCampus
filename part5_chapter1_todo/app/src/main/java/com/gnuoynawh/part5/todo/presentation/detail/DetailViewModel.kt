@@ -46,14 +46,19 @@ internal class DetailViewModel(
         }
     }
 
+    fun setModifyMode() = viewModelScope.launch {
+        _todoDetailLiveData.postValue(TodoDetailState.Modify)
+    }
+
     fun deleteTodo() = viewModelScope.launch {
         _todoDetailLiveData.postValue(TodoDetailState.Loading)
         try {
-            if (deleteTodoItemUseCase(id)) {
-                _todoDetailLiveData.postValue(TodoDetailState.Delete)
-            } else {
-                _todoDetailLiveData.postValue(TodoDetailState.Error)
-            }
+            deleteTodoItemUseCase(id)
+            _todoDetailLiveData.postValue(TodoDetailState.Delete)
+//            if (deleteTodoItemUseCase(id)) {
+//            } else {
+//                _todoDetailLiveData.postValue(TodoDetailState.Error)
+//            }
         }catch (e: Exception) {
             e.printStackTrace()
             _todoDetailLiveData.postValue(TodoDetailState.Error)

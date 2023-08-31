@@ -8,7 +8,7 @@ internal class DeleteTodoItemUseCase(
     private val todoRepository: TodoRepository
 ): UseCase {
 
-    suspend operator fun invoke(itemId: Long): Boolean {
+    suspend operator fun invoke(itemId: Long) {
         return todoRepository.deleteTodoItem(itemId)
     }
 
