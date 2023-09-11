@@ -1,11 +1,13 @@
 package com.gnuoynawh.prj.part4.github
 
 import android.content.Intent
-import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import androidx.browser.customtabs.CustomTabsIntent
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isGone
+import com.gnuoynawh.prj.part4.github.data.database.DataBaseProvider
+import com.gnuoynawh.prj.part4.github.data.entity.GithubRepoEntity
 import com.gnuoynawh.prj.part4.github.databinding.ActivityMainBinding
+import com.gnuoynawh.prj.part4.github.view.RepositoryRecyclerAdapter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -13,55 +15,97 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
-class MainActivity : AppCompatActivity(), CoroutineScope {
+class MainActivity: AppCompatActivity(), CoroutineScope {
 
-    private lateinit var binding:ActivityMainBinding
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var adapter: RepositoryRecyclerAdapter
 
-    val job: Job = Job()
+    private val repositoryDao by lazy {
+        DataBaseProvider.provideDB(application).repositoryDao()
+    }
+    private val job: Job = Job()
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        initView()
+//        launch {
+//            addMockData()
+//            val githubRepositories = loadGithubRepositories()
+//            withContext(coroutineContext) {
+//                Log.e("TEST",githubRepositories.toString())
+//            }
+//        }
+
+        initAdapter()
+        initViews()
     }
 
-    private fun initView() {
-        binding.loginButton.setOnClickListener {
-            loginGithub()
+    private fun initAdapter() {
+        adapter = RepositoryRecyclerAdapter()
+    }
+
+    private fun initViews() = with(binding) {
+        emptyResultTextView.isGone = true
+        recyclerView.adapter = adapter
+        searchButton.setOnClickListener {
+            startActivity(
+                Intent(this@MainActivity, SearchActivity::class.java)
+            )
         }
     }
 
-    private fun loginGithub() {
-        val loginUrl = Uri.Builder().scheme("https").authority("github.com")
-            .appendPath("login")
-            .appendPath("oauth")
-            .appendPath("authorize")
-            .appendQueryParameter("client_id", BuildConfig.GITHUB_CLIENT_ID)
-            .build()
-
-        CustomTabsIntent.Builder().build().also {
-            it.launchUrl(this, loginUrl)
+    override fun onResume() {
+        super.onResume()
+        launch(coroutineContext) {
+            loadRepositories()
         }
     }
 
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
+    private suspend fun loadRepositories() = withContext(Dispatchers.IO) {
+        val repositories = repositoryDao.getHistory()
+        withContext(Dispatchers.Main) {
+            setData(repositories)
+        }
+    }
 
-        intent?.data?.getQueryParameter("code")?.let {
-            //TODO: get AccessToken
-            launch {
-                getAccessToken(it)
+    private fun setData(githubRepoList: List<GithubRepoEntity>) = with(binding) {
+        if (githubRepoList.isEmpty()) {
+            emptyResultTextView.isGone = false
+            recyclerView.isGone = true
+        } else {
+            emptyResultTextView.isGone = true
+            recyclerView.isGone = false
+            adapter.setSearchResultList(githubRepoList) {
+                startActivity(
+                    Intent(this@MainActivity, RepositoryActivity::class.java).apply {
+                        putExtra(RepositoryActivity.REPOSITORY_OWNER_KEY, it.owner.login)
+                        putExtra(RepositoryActivity.REPOSITORY_NAME_KEY, it.name)
+                    }
+                )
             }
         }
     }
+//    private suspend fun addMockData() = withContext(Dispatchers.IO) {
+//        val mockData = (0 until 10).map {
+//            GithubRepoEntity(
+//                name = "repo $it",
+//                fullName = "name $it",
+//                owner = GithubOwner(
+//                    "login",
+//                    "avatarUrl"
+//                ),
+//                description = null,
+//                language = null,
+//                updatedAt = Date().toString(),
+//                stargazersCount = it
+//            )
+//        }
+//        repositoryDao.insertAll(mockData)
+//    }
 
-    private suspend fun getAccessToken(code: String) = withContext(Dispatchers.IO) {
-        //val response
-    }
 }

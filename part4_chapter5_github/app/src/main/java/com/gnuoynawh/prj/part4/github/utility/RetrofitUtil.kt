@@ -3,6 +3,7 @@ package com.gnuoynawh.prj.part4.github.utillity
 import com.gnuoynawh.prj.part4.github.BuildConfig
 import com.gnuoynawh.prj.part4.github.data.Url
 import com.gnuoynawh.prj.part4.github.utility.AuthApiService
+import com.gnuoynawh.prj.part4.github.utility.GithubApiService
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
@@ -17,7 +18,7 @@ object RetrofitUtil {
         getGithubAuthRetrofit().create(AuthApiService::class.java)
     }
 
-    private fun getGithubAuthRetrofit(): Retrofit {
+    private fun getGithubAuthRetrofit() : Retrofit {
         return Retrofit.Builder()
             .baseUrl(Url.GITHUB_URL)
             .addConverterFactory(
@@ -56,6 +57,7 @@ object RetrofitUtil {
         } else {
             interceptor.level = HttpLoggingInterceptor.Level.NONE
         }
+
         return OkHttpClient.Builder()
             .connectTimeout(5, TimeUnit.SECONDS)
             .addInterceptor(interceptor)
