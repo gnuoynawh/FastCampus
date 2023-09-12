@@ -10,7 +10,8 @@ object DataBaseProvider {
 
     fun provideDB(application: Application) = Room.databaseBuilder(
         application,
-        MyGithubDatabase::class.java, DB_NAME
+        MyGithubDatabase::class.java,
+        DB_NAME
     ).build()
 
 }
